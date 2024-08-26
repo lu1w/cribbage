@@ -1,4 +1,5 @@
-:- ensure_loaded(cribbage).
+:- ensure_loaded(hand_value).
+:- ensure_loaded(select_hand).
 
 %% ===== TESTING ONLY ===== 
 % ace, jack, queen, or king
@@ -111,3 +112,4 @@ cards53(Cards) :-
 
 test_set_diff(Set0, Set1, Diff) :- 
     set_difference(Set0, Set1, [], Diff). 
+
