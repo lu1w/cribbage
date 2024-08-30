@@ -5,7 +5,7 @@
 %  cards, the predicate will fail. 
 hand_value(Hand, Startcard, Value) :- 
     length(Hand, 4),
-    standardize_cards([Startcard|Hand], [], Cards), 
+    standardize_cards([Startcard|Hand], Cards), 
     msort(Cards, Cards_Sorted),
     value_15s(Cards_Sorted, Value_15s), 
     value_pairs(Cards_Sorted, Value_Pairs), 
@@ -18,13 +18,20 @@ hand_value(Hand, Startcard, Value) :-
 %% standardized_cards(++Cards, +Acc, -Cards_Std) 
 %  
 %  Standardize (i.e. consolidate all the Rank to numbers) each and every card 
-%  in Cards, where Acc is an accumulator for storing the standardized cards 
-%  during this process, and Cards_Std unifies with the list of cards after 
+%  in Cards, and Cards_Std unifies with the list of cards after 
 %  standardization. 
+standardize_cards(Cards, Cards_Std) :- 
+    standardize_cards(Cards, [], Cards_Std). 
+
+%% standardized_cards(++Cards, +Acc, -Cards_Std) 
+%
+%  TRO for standardized_cards/3. 
+%  Acc is an accumulator for storing the standardized cards in Cards_Std. 
 standardize_cards([], Cards_Std, Cards_Std).
 standardize_cards([card(Rank,Suit)|Cards], Acc, Cards_Std) :- 
     standardize_card(card(Rank,Suit), Card_Std),
     standardize_cards(Cards, [Card_Std|Acc], Cards_Std).
+
 
 %% standardize_card(++Card, -Card_Std)
 % 
@@ -45,6 +52,7 @@ standardize_card(card(Rank,Suit), card(Rank,Suit)) :- integer(Rank).
 value_15s(Cards_Sorted, Value) :- 
     count_15s(Cards_Sorted, 0, 0, Combinations), 
     Value is Combinations * 2. 
+
 
 %% count_15s(++Cards_Sorted, +Sum, +Acc, -Combinations)
 % 
@@ -82,28 +90,43 @@ count_15s([card(Rank,_)|Cards_Sorted], Sum, Acc, Combinations) :-
 %  the product of the number of distinct pairs and the points for each pair 
 %  (i.e. 2 points). 
 value_pairs(Cards_Sorted, Value) :-  
-    count_pairs(Cards_Sorted, 0, Pairs), 
+    count_pairs(Cards_Sorted, Pairs), 
     Value is Pairs * 2. 
 
-%% count_pairs(++Cards_Sorted, +Acc, -Pairs)
+
+%% count_pairs(++Cards_Sorted, -Pairs)
 %
 %  Helper predicate for value_pairs/2. 
 %  Count the number of distinct pairs in Cards_Sorted by recursively calling 
 %  counting the number of matching cards for each card, then unify the count
-%  with Pairs. Acc is an accumulator for Pairs. 
+%  with Pairs. 
+count_pairs(Cards_Sorted, Pairs) :- 
+    count_pairs(Cards_Sorted, 0, Pairs). 
+
+%% count_pairs(++Cards_Sorted, +Acc, -Pairs)
+%
+%  TRO for count_pairs/2. 
+%  Acc is an accumulator for Pairs. 
 count_pairs([], Pairs, Pairs). 
 count_pairs([card(Rank,_)|Cards], Acc, Pairs) :- 
-    count_matches(Cards, Rank, 0, Matches),
+    count_matches(Cards, Rank, Matches),
     Acc1 is Acc + Matches,
     count_pairs(Cards, Acc1, Pairs). 
-    
-%% count_matches(++Cards_Sorted, +Rank, +Acc, -Matches)
+
+
+%% count_matches(++Cards_Sorted, +Rank, -Matches)
 % 
 %  Helper predicate for count_pairs/3. 
 %  Recursively calls itself to check if the next card Rank0 in Cards_Sorted
 %  matches the targer Rank, and stop when an inequality occurs (since the 
-%  cards are sorted). The number of matches is unified with Matches, with Acc
-%  being the accumulator for Matches. 
+%  cards are sorted). The number of matches is unified with Matches. 
+count_matches(Cards, Rank, Matches) :- 
+    count_matches(Cards, Rank, 0, Matches). 
+
+%% count_matches(++Cards_Sorted, +Rank, +Acc, -Matches)
+% 
+%  TRO for count_matches/3. 
+%  Acc being the accumulator for Matches. 
 count_matches([], _, Matches, Matches). 
 count_matches([card(Rank0,_)|Cards_Sorted], Rank, Acc, Matches) :-
     (   Rank0 = Rank 
@@ -123,7 +146,7 @@ value_runs(Cards_Sorted, Value) :-
 
 %% value_runs(++Cards_Sorted, +Acc, -Value)
 % 
-%  Helper predicate for value_runs/3. 
+%  TRO for value_runs/3. 
 %  Acc is the accumulator for Value, which accumulates the points for each 
 %  concecutive group. If a concecutive group is not scoring any points (i.e. 
 %  less than 3 cards in the group), then no points are added to the accumulator 
@@ -134,23 +157,29 @@ value_runs([Card|Cards_Sorted], Acc, Value) :-
     Acc1 is Acc + Points, 
     value_runs(Rest, Acc1, Value). 
 
-%% count_runs(++Cards_Sorted, ++Prev, +Consec, +Duplicates, +Multiple, 
-%             -Points, -Rest)
+
+%% count_runs(++Cards_Sorted, ++Prev, -Points, -Rest)
 %
 %  Helper predicate for value_runs/3. 
 %  Count the number of runs in Cards_Sorted, and unify the number of points 
 %  scored from the runs with Points. Prev is the previous card, which is used
-%  as a reference to check if the next card has a consecutive rank. Consec acts 
-%  like an accumulator for counting the number of consecutive cards in the 
-%  current group. Rest is the list of cards that have not yet been checked and 
-%  their rank cannot be reached by linking consecutive ranks from Prev, helps
-%  value_runs/3 to skip the cards that're already searched during the each 
-%  recursion. 
+%  as a reference to check if the next card has a consecutive rank. Rest is the 
+%  list of cards that have not been checked since their rank cannot be reached 
+%  by linking consecutive ranks from Prev, helps value_runs/3 to skip the cards 
+%  that're already searched during the each recursion. 
+count_runs(Cards_Sorted, Card, Points, Rest) :- 
+    count_runs(Cards_Sorted, Card, 1, 1, 1, Points, Rest).
+
+%% count_runs(++Cards_Sorted, ++Prev, +Consec, +Duplicates, +Multiple, 
+%             -Points, -Rest)
+%
+%  TRO for count_runs/4. 
 %  
 %  The approach here to search for runs is based on a linear scan over all
 %  the cards within Cards_Sorted, and updates on key parameters for calculating  
 %  Points as we recursively search through the cards.  
 %  The parameters involved in the calculation are:
+%      - Consec: counts the number of consecutive cards in the current group
 %      - Duplicates: the number of duplications of the current card rank 
 %      - Multiple: the number that needs to be multiplied to the number of  
 %        consecutive cards when reaching a base case, due to duplicating cards

@@ -7,6 +7,7 @@ deck(Deck) :-
     suits(Suits), 
     setof(Card, valid_card(Card, Ranks, Suits), Deck).
 
+
 %% ranks(?Ranks)
 %
 %  Util predicate. 
@@ -19,6 +20,7 @@ deck(Deck) :-
 ranks(Ranks) :- 
     setof(Rank, between(2, 10, Rank), Rank_Nums),
     append([ace,jack,queen,king], Rank_Nums, Ranks). 
+
 
 %% suits(?Suits)
 %
