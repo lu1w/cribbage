@@ -1,6 +1,6 @@
 # cribbage
 
-COMP30020 Project 1, 2024 Sem 2, the University of Melbourne. 
+2024 Sem 2 COMP30020 Project 1, the University of Melbourne, assignment grade: 95/100.
 
 This project provides predicates that assist players in determining the scoring situation and developing strategy during the card game "Cribbage".
 
