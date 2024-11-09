@@ -215,6 +215,7 @@ count_runs([card(Rank0,_)|Cards_Sorted], card(Rank,_),
                    Consec, Duplicates1, Multiple, Points, Rest)
     ). 
 
+
 %% runs_points(+Consec, +Multiple, -Points)
 % 
 %  Helper predicate for count_runs/6. 
